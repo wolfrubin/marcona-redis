@@ -2,14 +2,18 @@ import asyncio
 import constants
 import ping
 import marcona_cache
+import helpers
+
 
 async def respond_to_command(command_name: str, args: list, writer: asyncio.StreamWriter):
     if command_name.upper() == constants.PING:
         await ping.ping_response(writer, args)
     elif command_name.upper() == constants.SET:
-        await marcona_cache.setval(writer, *args)
+        await marcona_cache.set_val(writer, *args)
     elif command_name.upper() == constants.GET:
-        await marcona_cache.getval(writer, *args)
+        await marcona_cache.get_val(writer, *args)
+    elif command_name.upper() == constants.EXISTS:
+        await marcona_cache.key_count(writer, *args)
     else:
         print('command not supported')
         writer.write(b'-ERR command not supported')
@@ -21,16 +25,16 @@ async def client_connected(reader: asyncio.StreamReader, writer: asyncio.StreamW
     first_byte = await reader.read(1)
     # Parse first bite. If this is not a *, it is an unrecognised command
     if first_byte == b'*':  # array
-        n_elements = await get_array_length(reader)
+        n_elements = await helpers.get_array_length(reader)
         command_name = None
         command_args = []
-        dtype, dlen = await read_dtype_and_len(reader)
+        dtype, dlen = await helpers.read_dtype_and_len(reader)
         if dtype == b'$':
             # Bulk string
             command_name = await reader.read(int(dlen))
             await reader.read(2)
         for element in range(1, int(n_elements)):
-            dtype, dlen = await read_dtype_and_len(reader)
+            dtype, dlen = await helpers.read_dtype_and_len(reader)
             if dtype == b'$':
                 # Bulk string
                 command_arg = await reader.read(int(dlen))

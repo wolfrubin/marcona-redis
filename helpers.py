@@ -1,3 +1,4 @@
+import asyncio
 import constants
 
 async def read_to_next(reader: asyncio.StreamReader):
@@ -20,3 +21,6 @@ def bulk_string_response(byte_string):
 
 def simple_string_response(byte_string):
     return b'+%b%b' % (byte_string, constants.CRLF)
+
+def integer_response(byte_string):
+    return b':%i%b' % (byte_string, constants.CRLF)
