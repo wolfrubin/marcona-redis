@@ -2,6 +2,7 @@ import asyncio
 import commands
 import helpers
 from command_error import execute as error
+from watchdog.events import FileSystemEventHandler
 
 
 async def respond_to_command(command_name: bytes, args: list, writer: asyncio.StreamWriter):
@@ -52,13 +53,13 @@ async def client_connected(reader: asyncio.StreamReader, writer: asyncio.StreamW
                 command_args.append(command_arg)
         print(command_name, command_args)
         await respond_to_command(command_name, command_args, writer)
-        writer.close()
     else:
         command = await read_to_next(reader)
-        writer.write(b'-ERR Unknown command %b' % command[:-2])
-        await writer.drain()
-        writer.close()
-            
+        error(writer, [command])
+    
+    await writer.drain()
+    writer.close()
+
 print('Starting server')
 
 event_loop: asyncio.BaseEventLoop = asyncio.get_event_loop()
@@ -67,8 +68,6 @@ factory = asyncio.start_server(client_connected, host='localhost', port=6351)
 server = event_loop.run_until_complete(factory)
 
 try:
-    print('initialising cache')
-    
     print('running server')
     event_loop.run_forever()
 except Exception:

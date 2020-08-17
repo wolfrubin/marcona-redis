@@ -12,4 +12,3 @@ async def execute(writer: asyncio.StreamWriter, *keys):
         else:
             key_count += 1
     writer.write(integer_response(key_count))
-    await writer.drain()
