@@ -21,7 +21,7 @@ class MarconaServerRestart(FileSystemEventHandler):
         self.process = subprocess.Popen(['python', 'marcona_server.py'])
 
     def stop_process(self):
-        self.process.kill()
+        self.process.terminate()
 
 
 path = sys.argv[1] if len(sys.argv) > 1 else '.'

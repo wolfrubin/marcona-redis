@@ -67,13 +67,21 @@ event_loop: asyncio.BaseEventLoop = asyncio.get_event_loop()
 factory = asyncio.start_server(client_connected, host='localhost', port=6351)
 server = event_loop.run_until_complete(factory)
 
-try:
-    print('running server')
-    event_loop.run_forever()
-except Exception:
-    pass
-finally:
+import signal
+
+def shutdown():
     print('closing server')
     server.close()
-    event_loop.run_until_complete(server.wait_closed())
+    event_loop.stop()
     print('shutdown complete')
+
+def signal_handler(sig, frame):
+    print("signal {} caught".format(signal.Signals(sig).name))
+    shutdown()
+
+if __name__ == "__main__":
+    print('installing signal handlers')
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    print('running server')
+    event_loop.run_forever()
